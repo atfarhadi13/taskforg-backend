@@ -23,6 +23,8 @@ INSTALLED_APPS = [
 
     # Third-party
     "rest_framework",
+    "drf_spectacular",
+    "drf_spectacular_sidecar",
 
     # Local apps
     "core",
@@ -111,4 +113,12 @@ REST_FRAMEWORK = {
     ],
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 20,
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "TaskForge API",
+    "DESCRIPTION": "Multi-tenant project management & time tracking API.",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
 }
