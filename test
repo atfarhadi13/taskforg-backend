@@ -1,0 +1,600 @@
+Project idea: TaskForge – Multi-Tenant Project Management & Time Tracking SaaS
+You’ll build a backend for teams to manage projects, tasks, time logs, billing plans, and reports. Perfect for a full-stack portfolio.
+
+Below is only the Django backend roadmap, split by weeks and days.
+
+WEEK 1 – Project Skeleton & Core Architecture
+
+Goal: Clean Django/DRF base, multi-app structure, config ready.
+
+Day 1
+
+Create repo and virtualenv.
+
+Install Django, djangorestframework, python-dotenv.
+
+Create project taskforge with core app.
+
+Day 2
+
+Set up settings modules: settings/base.py, settings/dev.py, settings/prod.py.
+
+Configure DB (Postgres), INSTALLED_APPS, DRF defaults (pagination, auth, etc.).
+
+Day 3
+
+Create apps: accounts, workspaces, projects.
+
+Wire them in INSTALLED_APPS.
+
+Day 4
+
+Create base models in core (TimeStampedModel, UUIDModel).
+
+Apply first migration, test runserver.
+
+Day 5
+
+Configure urls.py for API prefix /api/v1/.
+
+Install & set up drf-spectacular (or drf-yasg) for schema.
+
+Day 6
+
+Add simple healthcheck endpoint /api/health/.
+
+Add basic docker-compose.yml for Postgres (no Dockerfile yet).
+
+Day 7
+
+Clean folder structure, add .env.example, .gitignore, and basic README.
+
+WEEK 2 – Users, Auth, Roles (Accounts)
+
+Goal: Custom user model, JWT auth, basic roles.
+
+Day 1
+
+Implement CustomUser (email login, no username) in accounts.models.
+
+Update AUTH_USER_MODEL, migrate.
+
+Day 2
+
+Install SimpleJWT.
+
+Configure JWT settings, token lifetime, custom claims (e.g., workspace info later).
+
+Day 3
+
+Implement register and login API with DRF views/serializers.
+
+Return access + refresh tokens.
+
+Day 4
+
+Add UserProfile model (full_name, avatar, job_title, timezone).
+
+Serializer + GET/PUT /me/ endpoint.
+
+Day 5
+
+Roles: add role field to user (admin, member) OR separate Role model.
+
+Ensure superuser creation works.
+
+Day 6
+
+Add basic password reset stubs (no email yet): request + confirm endpoints.
+
+Day 7
+
+Write tests for registration, login, /me.
+
+Fix edge cases (duplicate email, weak password).
+
+WEEK 3 – Workspaces & Membership
+
+Goal: Multi-tenant structure (teams/companies).
+
+Day 1
+
+Models in workspaces: Workspace, WorkspaceMembership.
+
+Fields: name, slug, owner, plan, is_active.
+
+Day 2
+
+WorkspaceMembership: user, workspace, role, invited_by, status.
+
+Day 3
+
+Endpoints:
+
+List user workspaces
+
+Create workspace
+
+Switch active workspace (store in user or via header).
+
+Day 4
+
+Invitation flow (basic):
+
+POST /workspaces/{id}/invite/ (email + role).
+
+accept_invite stub (token later).
+
+Day 5
+
+Permissions: ensure all project/task endpoints will be filtered by current workspace.
+
+Add custom DRF permission class IsWorkspaceMember.
+
+Day 6
+
+Add middleware or util to resolve “current workspace” from header/URL.
+
+Day 7
+
+Tests for workspace creation, membership, permissions.
+
+WEEK 4 – Projects & Kanban Tasks
+
+Goal: Projects, columns, tasks, comments.
+
+Day 1
+
+Models in projects:
+
+Project (workspace, name, description, status).
+
+ProjectMembership (optional if per-project roles).
+
+Day 2
+
+Kanban:
+
+TaskStatus (Backlog, In Progress, Done, …).
+
+Task (project, title, description, assignee, status, priority, due_date, estimate_hours).
+
+Day 3
+
+Task extras:
+
+Tag model + m2m with Task.
+
+TaskComment (task, author, body).
+
+Day 4
+
+DRF ViewSets:
+
+Project CRUD
+
+Task CRUD
+
+Filter tasks by status, assignee, due_date.
+
+Day 5
+
+Add search & ordering for tasks (title, created_at, priority).
+
+Pagination tuning.
+
+Day 6
+
+Permissions:
+
+Only workspace members can access.
+
+Optional: project-level roles (owner, collaborator).
+
+Day 7
+
+Tests for project & task APIs.
+
+WEEK 5 – Time Tracking & Reports
+
+Goal: Time logs per task; reporting endpoints.
+
+Day 1
+
+TimeEntry model:
+
+user, task, project, started_at, ended_at, duration, note.
+
+Day 2
+
+Endpoints:
+
+Log time for a task (manual).
+
+List time entries by task/user/project.
+
+Day 3
+
+Aggregation endpoints:
+
+Total hours per project (date range).
+
+Total hours per user (date range).
+
+Day 4
+
+Add constraints:
+
+No negative durations.
+
+Prevent overlapping entries (basic check).
+
+Day 5
+
+Reporting API:
+
+/reports/summary/ – summarise hours per project/user.
+
+Day 6
+
+Optimize queries with select_related / prefetch_related.
+
+Day 7
+
+Tests for time tracking & reports.
+
+WEEK 6 – Billing, Plans, & Stripe Integration
+
+Goal: SaaS billing structure + basic Stripe.
+
+Day 1
+
+Models in billing app:
+
+Plan (name, price_monthly, price_yearly, max_users, max_projects).
+
+Subscription (workspace, plan, status, current_period_end, stripe_customer_id, stripe_sub_id).
+
+Day 2
+
+Assign default Free plan on workspace creation.
+
+Enforce simple limits in code (e.g., max projects).
+
+Day 3
+
+Integrate Stripe SDK:
+
+Create customer for workspace owner.
+
+Create checkout session endpoint.
+
+Day 4
+
+Webhook endpoint /stripe/webhook/:
+
+Handle subscription created/updated/canceled.
+
+Day 5
+
+Update Subscription on webhook events.
+
+Day 6
+
+Add endpoint to retrieve current subscription & plan limits.
+
+Day 7
+
+Tests with mocked Stripe calls.
+
+WEEK 7 – Notifications & Activity Logs
+
+Goal: Track activity; email & in-app notifications.
+
+Day 1
+
+ActivityLog model:
+
+workspace, user, action_type, metadata (JSON), created_at.
+
+Day 2
+
+Hook into signals:
+
+On Task create/update, Project create, TimeEntry log → create ActivityLog.
+
+Day 3
+
+Simple Notification model:
+
+user, title, body, read_at, related_object (GenericForeignKey).
+
+Day 4
+
+Email backend setup (console in dev).
+
+Utility function send_notification_email.
+
+Day 5
+
+When user is assigned to a task → create notification + send email.
+
+Day 6
+
+APIs:
+
+List notifications
+
+Mark as read
+
+Day 7
+
+Tests + ensure logs/notifications are filtered by workspace.
+
+WEEK 8 – Permissions, Security & Throttling
+
+Goal: Harden backend.
+
+Day 1
+
+Add per-object permissions (e.g., only creator or assignee can edit a task).
+
+Custom DRF permissions.
+
+Day 2
+
+Add DRF throttling for login, register, and key endpoints.
+
+Day 3
+
+Implement audit logging for sensitive actions (billing, workspace changes).
+
+Day 4
+
+Ensure no data leaks across workspaces (extra tests).
+
+Day 5
+
+Rate-limit Stripe endpoints and webhooks.
+
+Day 6
+
+Security headers & CORS settings for future React client.
+
+Day 7
+
+Security test pass (manual checks, some automated tests).
+
+WEEK 9 – File Uploads & Integrations
+
+Goal: Attachments + external integrations.
+
+Day 1
+
+Attachment model:
+
+file, owner, workspace, project, task (nullable), uploaded_at.
+
+Day 2
+
+Configure storage (local in dev, S3/MinIO ready in prod).
+
+Day 3
+
+Endpoint:
+
+Upload attachment to a task.
+
+List attachments per task.
+
+Day 4
+
+Add size and type validation.
+
+Day 5
+
+Webhook endpoints for external integrations (e.g., /webhooks/github/issue/ stub).
+
+Day 6
+
+Store external IDs & references (e.g., GitHub issue id on Task).
+
+Day 7
+
+Tests for file handling and simple integration stubs.
+
+WEEK 10 – Admin & Ops
+
+Goal: Strong Django admin & ops utilities.
+
+Day 1
+
+Customize Django admin for accounts, workspaces, projects.
+
+Day 2
+
+Add list filters, search, and inlines for Tasks, TimeEntries.
+
+Day 3
+
+Management commands:
+
+cleanup_inactive_workspaces
+
+rebuild_reports_cache (for later).
+
+Day 4
+
+Add /api/health/ enhanced:
+
+DB check, cache check, queue check (if using Celery later).
+
+Day 5
+
+Basic logging config (RotatingFileHandler, structured logs).
+
+Day 6
+
+Add simple metrics endpoint or integration (e.g., Prometheus stub).
+
+Day 7
+
+Admin side manual QA.
+
+WEEK 11 – Testing & CI
+
+Goal: Solid test base, automated checks.
+
+Day 1
+
+Set up pytest + pytest-django.
+
+FactoryBoy/Faker for models.
+
+Day 2
+
+Write tests for accounts/auth.
+
+Day 3
+
+Tests for workspaces/projects/tasks.
+
+Day 4
+
+Tests for time tracking & billing.
+
+Day 5
+
+Tests for permissions & throttling.
+
+Day 6
+
+Configure GitHub Actions (or similar) for:
+
+run tests
+
+flake8/black/isort.
+
+Day 7
+
+Ensure coverage baseline (e.g., 70–80%).
+
+WEEK 12 – Performance & Caching
+
+Goal: Make APIs production-ready.
+
+Day 1
+
+Profile slow endpoints (tasks list, reports).
+
+Day 2
+
+Add select_related/prefetch_related optimizations.
+
+Day 3
+
+Add simple caching with Redis for:
+
+workspace plan info
+
+heavy reports.
+
+Day 4
+
+Tune pagination defaults.
+
+Day 5
+
+Add ETag or Last-Modified where possible.
+
+Day 6
+
+Load test small subset (locust or simple script).
+
+Day 7
+
+Document performance notes.
+
+WEEK 13 – API Polish & Versioning
+
+Goal: Developer-friendly API.
+
+Day 1
+
+Refine OpenAPI schema & tags.
+
+Add examples.
+
+Day 2
+
+Organize URLs (namespaces per app).
+
+Day 3
+
+API versioning strategy (/api/v1/, ready for v2).
+
+Day 4
+
+Error format standardization ({message, errors, code}).
+
+Day 5
+
+Add 403/404 specialized JSON responses.
+
+Day 6
+
+Document all endpoints for frontend dev (short API docs).
+
+Day 7
+
+Final review pass.
+
+WEEK 14 – Deployment Prep & Final Touch
+
+Goal: Ready for production & portfolio show.
+
+Day 1
+
+Dockerfile for Django app.
+
+Update docker-compose for app + DB + Redis.
+
+Day 2
+
+Prod settings:
+
+ALLOWED_HOSTS
+
+DEBUG=False
+
+secure cookies
+
+CSRF trusted origins.
+
+Day 3
+
+Collectstatic + whitenoise / S3 config for static files.
+
+Day 4
+
+One-click deploy script (e.g., to Render/Heroku/Dokku).
+
+Day 5
+
+Create demo fixtures:
+
+sample users, workspace, projects, tasks, time entries.
+
+Day 6
+
+Final backend README:
+
+architecture
+
+apps
+
+models overview
+
+how to run locally.
+
+Day 7
