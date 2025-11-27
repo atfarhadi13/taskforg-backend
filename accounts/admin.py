@@ -6,7 +6,7 @@ from .models import User
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
     model = User
-    list_display = ("id", "email", "first_name", "last_name", "is_staff", "is_active")
+    list_display = ("id", "email", "first_name", "last_name", "is_staff", "is_active", "role")
     list_filter = ("is_staff", "is_active", "is_superuser")
     ordering = ("email",)
 

@@ -45,9 +45,11 @@ class LoginSerializer(serializers.Serializer):
         }
 
 class UserProfileSerializer(serializers.ModelSerializer):
+    role = serializers.CharField(source="user.role", read_only=True)
+
     class Meta:
         model = UserProfile
-        fields = ["full_name", "avatar", "job_title", "timezone"]
+        fields = ["full_name", "avatar", "job_title", "timezone", "role"]
 
     def update(self, instance, validated_data):
         instance.full_name = validated_data.get("full_name", instance.full_name)
