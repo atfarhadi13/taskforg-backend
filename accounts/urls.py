@@ -1,22 +1,10 @@
 from django.urls import path
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-
-
-class CustomTokenSerializer(TokenObtainPairSerializer):
-    @classmethod
-    def get_token(cls, user):
-        token = super().get_token(user)
-        token["email"] = user.email
-        token["full_name"] = f"{user.first_name} {user.last_name}"
-        return token
-
-
-class CustomTokenView(TokenObtainPairView):
-    serializer_class = CustomTokenSerializer
-
+from rest_framework_simplejwt.views import TokenRefreshView
+from .views import RegisterView, LoginView, CustomTokenView
 
 urlpatterns = [
-    path("auth/token/", CustomTokenView.as_view(), name="token_obtain_pair"),
-    path("auth/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
+    path("register/", RegisterView.as_view(), name="auth_register"),
+    path("login/", LoginView.as_view(), name="auth_login"),
+    path("token/", CustomTokenView.as_view(), name="token_obtain_pair"),
+    path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
 ]
