@@ -1,8 +1,9 @@
-from rest_framework import serializers
 from django.contrib.auth import authenticate
-from .models import User
+
+from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from .models import User, UserProfile
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
@@ -42,3 +43,16 @@ class LoginSerializer(serializers.Serializer):
                 "last_name": user.last_name,
             }
         }
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfile
+        fields = ["full_name", "avatar", "job_title", "timezone"]
+
+    def update(self, instance, validated_data):
+        instance.full_name = validated_data.get("full_name", instance.full_name)
+        instance.avatar = validated_data.get("avatar", instance.avatar)
+        instance.job_title = validated_data.get("job_title", instance.job_title)
+        instance.timezone = validated_data.get("timezone", instance.timezone)
+        instance.save()
+        return instance

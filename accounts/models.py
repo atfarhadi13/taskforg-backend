@@ -5,6 +5,7 @@ from django.contrib.auth.models import (
     BaseUserManager,
 )
 from django.utils import timezone
+from django.conf import settings
 
 
 class UserManager(BaseUserManager):
@@ -47,3 +48,13 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.email
+
+class UserProfile(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="profile")
+    full_name = models.CharField(max_length=255, blank=True, null=True)
+    avatar = models.ImageField(upload_to="avatars/", null=True, blank=True)
+    job_title = models.CharField(max_length=255, blank=True, null=True)
+    timezone = models.CharField(max_length=100, blank=True, null=True)
+
+    def __str__(self):
+        return self.full_name or self.user.email
